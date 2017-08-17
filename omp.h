@@ -30,24 +30,48 @@ void omp(Instance &inst) {
     for (int j = 0; j < n; ++j) {
         res_cols.insert(j);
     }
-    map<int, double> projection;
-    for (int j = 0; j < n; ++j) {
-        projection[j] = 0.0;
-    }
+
+    MatrixXd rays = MatrixXd::Identity(2 * m, 2 * m);
+    MatrixXd projected_rays = rays;
+    VectorXd cR = c.transpose() * rays;
+
+
     int iter = 0;
-    while ((c.norm() > 1e-4) && (iter < 5)) {
-        double max_projection = 0;
-        int select_j = *res_cols.begin();
-        for (auto &j:res_cols) {
-            projection[j] = abs(c.dot(M.col(j)) / M.col(j).norm());
-            if (projection.at(j) > max_projection) {
-                max_projection = projection.at(j);
-                select_j = j;
+    while ((cR.minCoeff() < 0) && (iter < 500)) {
+        VectorXd unbounded_direction = VectorXd::Zero(2 * m, 1);
+        for (int i = 0; i < 2 * m; ++i) {
+            if (cR[i] < 0) {
+                unbounded_direction += projected_rays.col(i);
             }
-            cout << projection.at(j) << endl;
         }
-//        c = c - c.dot(M.col(select_j)) / M.col(select_j).norm();
-        cout << iter << c.norm() << endl;
+
+        double most_violated_value = 0;
+        int most_violated_cutting_plane_id = -1;
+        double violated_value;
+        for (auto &j:res_cols) {
+            violated_value = abs(M.col(j).dot(unbounded_direction));
+            if (violated_value > most_violated_value) {
+                most_violated_value = violated_value;
+                most_violated_cutting_plane_id = j;
+            }
+        }
+
+
+//        res_cols.erase(most_violated_cutting_plane_id);
+        selected_cols.insert(most_violated_cutting_plane_id);
+
+        MatrixXd P(2 * m, res_cols.size());
+        int j_P = 0;
+        for (auto &j:res_cols) {
+            P.col(j_P) << M.col(j);
+            j_P++;
+        }
+        projected_rays = rays - M * (M.transpose() * M).inverse() * M.transpose();
+        cR = c.transpose() * projected_rays;
+
+        cout << cR.minCoeff() << endl;
+        cout << M * (M.transpose() * M).inverse() * M.transpose() << endl;
+
         iter += 1;
     }
 
