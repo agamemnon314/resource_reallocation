@@ -46,7 +46,7 @@ void omp(Instance &inst) {
             }
             cout << projection.at(j) << endl;
         }
-        c = c - c.dot(M.col(select_j)) / M.col(select_j).norm();
+//        c = c - c.dot(M.col(select_j)) / M.col(select_j).norm();
         cout << iter << c.norm() << endl;
         iter += 1;
     }
