@@ -54,6 +54,10 @@ struct Instance {
     void clear_solution() {
         x = VectorXd::Zero(x.rows());
     }
+
+    void initialize_solution(VectorXd &x0) {
+        x = x0;
+    }
 };
 
 

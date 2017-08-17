@@ -69,7 +69,7 @@ void cutting_plane_method(Instance &inst) {
         bool is_feasible = (cplex.getStatus() == IloAlgorithm::Optimal)
                            || (cplex.getStatus() == IloAlgorithm::Feasible);
         while (is_feasible && (cplex.getObjValue() < -1e-4)) {
-            cout << cplex.getObjValue() << endl;
+//            cout << cplex.getObjValue() << endl;
             VectorXd y_opt(2 * m);
             for (int i = 0; i < 2 * m; ++i) {
                 y_opt[i] = cplex.getValue(y[i]);

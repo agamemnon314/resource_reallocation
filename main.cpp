@@ -1,5 +1,7 @@
 #include <iostream>
 #include <chrono>
+#include <vector>
+#include <fstream>
 #include "instance.h"
 #include "L1.h"
 #include "cutting_plane.h"
@@ -9,59 +11,111 @@
 using namespace chrono;
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-    Instance inst(500, 540);
-//    inst.display();
-    system_clock::time_point t1 = high_resolution_clock::now();
-    generate_instance(inst, 0.4, 0.25);
-    system_clock::time_point t2 = high_resolution_clock::now();
-    duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-    cout << "生成随机实例用时： " << time_span.count() << " s" << endl;
+
+    string file_name = "record_500.csv";
+    ofstream of;
+    of.open(file_name);
+    of << "method,nnz,running_time,size,p_coef,p_nnz" << endl;
+
+    vector<string> algorithm_names = {"l1", "OMP", "Cap", "PiL", "SCAD", "CP"};
+    vector<double> running_time(algorithm_names.size(), 0);
+    vector<double> nnz(algorithm_names.size(), -1);
+
+    vector<double> n_list{0.8, 1, 1.2, 1.4};
+    vector<double> p_list{0.2, 0.4, 0.6, 0.8};
+    int m = 500;
+    for (auto &s:n_list) {
+        int n = static_cast<int>(m * s);
+        for (auto &p_coef:p_list) {
+            for (auto &p_nnz:p_list) {
+                for (int iter = 0; iter < 10; ++iter) {
+                    cout << m << "," << n << "," << p_coef << "," << p_nnz << endl;
+                    Instance inst(m, n);
+                    system_clock::time_point t1 = high_resolution_clock::now();
+                    generate_instance(inst, p_coef, p_nnz);
+                    system_clock::time_point t2 = high_resolution_clock::now();
+                    duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+                    cout << "生成随机实例用时： " << time_span.count() << " s" << endl;
 
 
-    int nnz1 = -1, nnz2 = -1, nnz3 = -1, nnz4 = -1;
-    t1 = high_resolution_clock::now();
-    DCA_Cap(inst, 0.05, 1e-4);
-    if (inst.check_feasiblity()) {
-        nnz1 = inst.count_nnz();
-    } else {
-        nnz1 = -1;
+                    VectorXd x0 = VectorXd::Zero(n, 1);
+                    t1 = high_resolution_clock::now();
+                    l1_method(inst);
+                    t2 = high_resolution_clock::now();
+                    time_span = duration_cast<duration<double>>(t2 - t1);
+                    running_time[0] = time_span.count();
+                    if (inst.check_feasiblity()) {
+                        nnz[0] = inst.count_nnz();
+                        x0 = inst.x;
+                    }
+
+                    t1 = high_resolution_clock::now();
+                    omp(inst);
+                    t2 = high_resolution_clock::now();
+                    time_span = duration_cast<duration<double>>(t2 - t1);
+                    running_time[1] = time_span.count();
+                    if (inst.check_feasiblity()) {
+                        nnz[1] = inst.count_nnz();
+                    }
+
+
+                    inst.initialize_solution(x0);
+                    t1 = high_resolution_clock::now();
+                    DCA_Cap(inst);
+                    t2 = high_resolution_clock::now();
+                    time_span = duration_cast<duration<double>>(t2 - t1);
+                    running_time[2] = time_span.count();
+                    if (inst.check_feasiblity()) {
+                        nnz[2] = inst.count_nnz();
+                    }
+
+                    inst.initialize_solution(x0);
+                    t1 = high_resolution_clock::now();
+                    DCA_PiL(inst);
+                    t2 = high_resolution_clock::now();
+                    time_span = duration_cast<duration<double>>(t2 - t1);
+                    running_time[3] = time_span.count();
+                    if (inst.check_feasiblity()) {
+                        nnz[3] = inst.count_nnz();
+                    }
+
+                    inst.initialize_solution(x0);
+                    t1 = high_resolution_clock::now();
+                    DCA_SCAD(inst);
+                    t2 = high_resolution_clock::now();
+                    time_span = duration_cast<duration<double>>(t2 - t1);
+                    running_time[4] = time_span.count();
+                    if (inst.check_feasiblity()) {
+                        nnz[4] = inst.count_nnz();
+                    }
+
+
+                    t1 = high_resolution_clock::now();
+                    cutting_plane_method(inst);
+                    t2 = high_resolution_clock::now();
+                    time_span = duration_cast<duration<double>>(t2 - t1);
+                    running_time[5] = time_span.count();
+                    if (inst.check_feasiblity()) {
+                        nnz[5] = inst.count_nnz();
+                    }
+
+                    cout << "iterations: " << iter << "////////////////////////////" << endl;
+                    for (int i = 0; i < algorithm_names.size(); ++i) {
+                        of << algorithm_names[i] << ",";
+                        of << nnz[i] << ",";
+                        of << running_time[i] << ",";
+                        of << m << "-" << n << ",";
+                        of << p_coef << ",";
+                        of << p_nnz << endl;
+
+                        cout << algorithm_names[i] << " -- ";
+                        cout << "非零变量个数：" << nnz[i] << ", ";
+                        cout << "运行时间： " << running_time[i] << endl;
+                    }
+                }
+            }
+        }
     }
-    inst.clear_solution();
-
-    l1_method(inst);
-    if (inst.check_feasiblity()) {
-        nnz2 = inst.count_nnz();
-    } else {
-        nnz2 = -1;
-    }
-    inst.clear_solution();
-    DCA_SCAD(inst);
-    if (inst.check_feasiblity()) {
-        nnz3 = inst.count_nnz();
-    } else {
-        nnz3 = -1;
-    }
-    inst.clear_solution();
-
-    DCA_PiL(inst);
-    if (inst.check_feasiblity()) {
-        nnz4 = inst.count_nnz();
-    } else {
-        nnz4 = -1;
-    }
-    inst.clear_solution();
-
-    t2 = high_resolution_clock::now();
-
-
-    cout << "非零变量个数：" << nnz1 << endl;
-    cout << "非零变量个数：" << nnz2 << endl;
-    cout << "非零变量个数：" << nnz3 << endl;
-    cout << "非零变量个数：" << nnz4 << endl;
-
-    time_span = duration_cast<duration<double>>(t2 - t1);
-    cout << "求解用时： " << time_span.count() << " s" << endl;
 
 
     return 0;

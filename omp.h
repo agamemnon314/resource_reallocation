@@ -100,7 +100,7 @@ void omp(Instance &inst) {
         bool is_feasible = (cplex.getStatus() == IloAlgorithm::Optimal)
                            || (cplex.getStatus() == IloAlgorithm::Feasible);
         while (is_feasible && (cplex.getObjValue() > 1e-4)) {
-            cout << cplex.getObjValue() << endl;
+//            cout << cplex.getObjValue() << endl;
             xx = VectorXd::Zero(n, 1);
             for (auto &j:selected_cols) {
                 xx[j] = cplex.getValue(x[j]);
