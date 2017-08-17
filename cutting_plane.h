@@ -66,7 +66,9 @@ void cutting_plane_method(Instance &inst) {
             cout << "当前问题不可行" << endl;
             return;
         }
-        while ((cplex.getStatus() == IloAlgorithm::Optimal) && (cplex.getObjValue() < -1e-4)) {
+        bool is_feasible = (cplex.getStatus() == IloAlgorithm::Optimal)
+                           || (cplex.getStatus() == IloAlgorithm::Feasible);
+        while (is_feasible && (cplex.getObjValue() < -1e-4)) {
             cout << cplex.getObjValue() << endl;
             VectorXd y_opt(2 * m);
             for (int i = 0; i < 2 * m; ++i) {
@@ -87,26 +89,29 @@ void cutting_plane_method(Instance &inst) {
             selected_cols.insert(most_violated_id);
 //            cout << "非零变量个数：" << selected_cols.size() << endl;
             cplex.solve();
+            is_feasible = (cplex.getStatus() == IloAlgorithm::Optimal)
+                          || (cplex.getStatus() == IloAlgorithm::Feasible);
         }
-        if ((cplex.getStatus() == IloAlgorithm::Optimal) && (cplex.getObjValue() >= -1e-4)) {
+        if (is_feasible && (cplex.getObjValue() >= -1e-4)) {
             VectorXd x = VectorXd::Zero(n, 1);
             for (auto &j:selected_cols) {
                 x[j] = cplex.getDual(cutting_pool[j]);
             }
-            VectorXd delta_l = -l + (A * x);
-            VectorXd delta_u = u - (A * x);
-            cout << delta_l.minCoeff() << endl;
-            cout << delta_u.minCoeff() << endl;
-            cout << x.array().abs().minCoeff() << endl;
-
-            cout << "非零变量个数：" << selected_cols.size() << endl;
-            int nnz = 0;
-            for (int j = 0; j < m; ++j) {
-                if (abs(x[j]) > 1e-4) {
-                    nnz++;
-                }
-            }
-            cout << "非零变量个数：" << nnz << endl;
+            inst.x = x;
+//            VectorXd delta_l = -l + (A * x);
+//            VectorXd delta_u = u - (A * x);
+//            cout << delta_l.minCoeff() << endl;
+//            cout << delta_u.minCoeff() << endl;
+//            cout << x.array().abs().minCoeff() << endl;
+//
+//            cout << "非零变量个数：" << selected_cols.size() << endl;
+//            int nnz = 0;
+//            for (int j = 0; j < m; ++j) {
+//                if (abs(x[j]) > 1e-4) {
+//                    nnz++;
+//                }
+//            }
+//            cout << "非零变量个数：" << nnz << endl;
 
         }
 

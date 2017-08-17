@@ -25,5 +25,5 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -DIL_STD")
 # eigen
 include_directories(/home/agamemnon/Eigen)
 
-set(SOURCE_FILES main.cpp instance.h L1.h omp.h cutting_plane.h)
+set(SOURCE_FILES main.cpp instance.h L1.h omp.h cutting_plane.h DCA.h)
 add_executable(resource_reallocation ${SOURCE_FILES})

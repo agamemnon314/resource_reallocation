@@ -51,19 +51,24 @@ void l1_method(Instance &inst) {
         expr.end();
 
         IloCplex cplex(model);
+        cplex.setOut(env.getNullStream());
+
 
         cplex.solve();
         if (cplex.getStatus() == IloAlgorithm::Infeasible) {
             cout << "当前问题不可行" << endl;
         }
         if (cplex.getStatus() == IloAlgorithm::Optimal) {
-            int nnz = 0;
             for (int j = 0; j < n; ++j) {
-                if (abs(cplex.getValue(x[j])) > 1e-4) {
-                    nnz += 1;
-                }
+                inst.x[j] = cplex.getValue(x[j]);
             }
-            cout << "非零变量个数：" << nnz << endl;
+//            int nnz = 0;
+//            for (int j = 0; j < n; ++j) {
+//                if (abs(cplex.getValue(x[j])) > 1e-4) {
+//                    nnz += 1;
+//                }
+//            }
+//            cout << "非零变量个数：" << nnz << endl;
         }
     } catch (const IloException &e) {
         cerr << "Exception caught: " << e << endl;

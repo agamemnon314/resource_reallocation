@@ -16,11 +16,13 @@ struct Instance {
     MatrixXd A;
     VectorXd l;
     VectorXd u;
+    VectorXd x;
 
     Instance(const int m, const int n) {
         A = MatrixXd::Zero(m, n);
         l = VectorXd::Zero(m);
         u = VectorXd::Zero(m);
+        x = VectorXd::Zero(n);
     }
 
     void display() {
@@ -31,7 +33,29 @@ struct Instance {
         cout << "u" << endl;
         cout << u.transpose() << endl;
     }
+
+    int count_nnz() {
+        int nnz = 0;
+        for (int j = 0; j < x.rows(); ++j) {
+            if (abs(x[j]) > 1e-4) {
+                nnz++;
+            }
+        }
+        return nnz;
+    }
+
+    bool check_feasiblity() {
+        VectorXd y = A * x;
+        bool flag_1 = (y.array() >= l.array() - 1e-4).all();
+        bool flag_2 = (y.array() <= u.array() + 1e-4).all();
+        return flag_1 && flag_2;
+    }
+
+    void clear_solution() {
+        x = VectorXd::Zero(x.rows());
+    }
 };
+
 
 void generate_instance(Instance &inst, double p, double alpha) {
     random_device rd;
