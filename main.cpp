@@ -23,12 +23,12 @@ int main() {
 
 //    vector<double> n_list{0.6, 1, 1.4};
 //    vector<double> p_coef_list{0.2, 0.4, 0.6};
-//    vector<double> p_nnz_list{0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
+    vector<double> p_nnz_list{0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
 
     vector<double> n_list{1.2};
-    vector<double> p_coef_list{0.6};
-    vector<double> p_nnz_list{0.3};
-    int m = 1500;
+    vector<double> p_coef_list{0.3};
+//    vector<double> p_nnz_list{0.3};
+    int m = 500;
     for (auto &s:n_list) {
         int n = static_cast<int>(m * s);
         for (auto &p_coef:p_coef_list) {

@@ -247,7 +247,7 @@ void ICP_method(Instance &inst, double alpha = 0.3) {
                               || (cplex.getStatus() == IloAlgorithm::Feasible);
             }
 
-            k *= 0.8;
+            k *= alpha;
 
 
         }

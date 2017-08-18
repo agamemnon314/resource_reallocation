@@ -19,6 +19,7 @@ void calculate_residual(VectorXd &res, MatrixXd &A, VectorXd &x, VectorXd &l, Ve
     VectorXd delta_u = -u + (A * x);
     int n = A.rows();
     for (int i = 0; i < n; ++i) {
+        res[i] = 0;
         if (delta_l[i] < -1e-4) {
             res[i] = delta_l[i];
         }
