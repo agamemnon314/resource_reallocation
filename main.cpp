@@ -17,18 +17,23 @@ int main() {
     of.open(file_name);
     of << "method,nnz,running_time,size,p_coef,p_nnz" << endl;
 
-    vector<string> algorithm_names = {"l1", "OMP", "Cap", "PiL", "SCAD", "CP"};
+    vector<string> algorithm_names = {"l1", "OMP", "Cap", "PiL", "SCAD", "CP", "ICP"};
     vector<double> running_time(algorithm_names.size(), 0);
     vector<double> nnz(algorithm_names.size(), -1);
 
-    vector<double> n_list{0.8, 1, 1.2, 1.4};
-    vector<double> p_list{0.2, 0.4, 0.6, 0.8};
-    int m = 500;
+//    vector<double> n_list{0.6, 1, 1.4};
+//    vector<double> p_coef_list{0.2, 0.4, 0.6};
+//    vector<double> p_nnz_list{0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
+
+    vector<double> n_list{1.2};
+    vector<double> p_coef_list{0.6};
+    vector<double> p_nnz_list{0.3};
+    int m = 1500;
     for (auto &s:n_list) {
         int n = static_cast<int>(m * s);
-        for (auto &p_coef:p_list) {
-            for (auto &p_nnz:p_list) {
-                for (int iter = 0; iter < 10; ++iter) {
+        for (auto &p_coef:p_coef_list) {
+            for (auto &p_nnz:p_nnz_list) {
+                for (int iter = 0; iter < 1; ++iter) {
                     cout << m << "," << n << "," << p_coef << "," << p_nnz << endl;
                     Instance inst(m, n);
                     system_clock::time_point t1 = high_resolution_clock::now();
@@ -97,6 +102,15 @@ int main() {
                     running_time[5] = time_span.count();
                     if (inst.check_feasiblity()) {
                         nnz[5] = inst.count_nnz();
+                    }
+
+                    t1 = high_resolution_clock::now();
+                    ICP_method(inst, 0.4);
+                    t2 = high_resolution_clock::now();
+                    time_span = duration_cast<duration<double>>(t2 - t1);
+                    running_time[6] = time_span.count();
+                    if (inst.check_feasiblity()) {
+                        nnz[6] = inst.count_nnz();
                     }
 
                     cout << "iterations: " << iter << "////////////////////////////" << endl;
