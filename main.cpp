@@ -12,7 +12,7 @@ using namespace chrono;
 
 int main() {
 
-    string file_name = "record_500.csv";
+    string file_name = "c_record_1000.csv";
     ofstream of;
     of.open(file_name);
     of << "method,nnz,running_time,size,p_coef,p_nnz" << endl;
@@ -22,13 +22,13 @@ int main() {
     vector<double> nnz(algorithm_names.size(), -1);
 
 //    vector<double> n_list{0.6, 1, 1.4};
-//    vector<double> p_coef_list{0.2, 0.4, 0.6};
+//    vector<double> p_coef_list{0.1, 0.2, 0.3, 0.4, 0.5};
     vector<double> p_nnz_list{0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
 
     vector<double> n_list{1.2};
     vector<double> p_coef_list{0.3};
 //    vector<double> p_nnz_list{0.3};
-    int m = 500;
+    int m = 1000;
     for (auto &s:n_list) {
         int n = static_cast<int>(m * s);
         for (auto &p_coef:p_coef_list) {
@@ -45,7 +45,7 @@ int main() {
 
                     VectorXd x0 = VectorXd::Zero(n, 1);
                     t1 = high_resolution_clock::now();
-                    l1_method(inst);
+                    reweighted_l1(inst);
                     t2 = high_resolution_clock::now();
                     time_span = duration_cast<duration<double>>(t2 - t1);
                     running_time[0] = time_span.count();
@@ -64,7 +64,7 @@ int main() {
                     }
 
 
-                    inst.initialize_solution(x0);
+                    inst.clear_solution();
                     t1 = high_resolution_clock::now();
                     DCA_Cap(inst);
                     t2 = high_resolution_clock::now();
@@ -74,7 +74,7 @@ int main() {
                         nnz[2] = inst.count_nnz();
                     }
 
-                    inst.initialize_solution(x0);
+                    inst.clear_solution();
                     t1 = high_resolution_clock::now();
                     DCA_PiL(inst);
                     t2 = high_resolution_clock::now();
@@ -84,7 +84,7 @@ int main() {
                         nnz[3] = inst.count_nnz();
                     }
 
-                    inst.initialize_solution(x0);
+                    inst.clear_solution();
                     t1 = high_resolution_clock::now();
                     DCA_SCAD(inst);
                     t2 = high_resolution_clock::now();
